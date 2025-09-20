@@ -5,15 +5,15 @@
     "eip150Block": 0,
     "eip155Block": 0,
     "eip158Block": 0,
-    "terminalTotalDifficulty": 0,
-    "parlia": {
-      "period": 3,
-      "epoch": 200
-    },
+    "clique": {
+      "period": 5,
+      "epoch": 30000
+    }
+  },
     "hlxConfig": {
       "burnPercent": 80,
       "rewardPercent": 20
-    }
+
   },
   "nonce": "0x0",
   "timestamp": "0x638f4323",
@@ -23,6 +23,9 @@
   "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "coinbase": "0x0000000000000000000000000000000000000000",
   "alloc": {
+    "0x5B97CD3a19f66b93EEF221787Cf30cF6361e4E8e": {
+      "balance": "1000000000000000000000000"
+    }
   },
   "number": "0x0",
   "gasUsed": "0x0",
