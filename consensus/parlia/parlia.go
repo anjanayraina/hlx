@@ -1957,9 +1957,29 @@ func (p *Parlia) distributeIncoming(val common.Address, state vm.StateDB, header
 		return nil
 	}
 
+	// Set the system address balance to zero first.
 	state.SetBalance(consensus.SystemAddress, common.U2560, tracing.BalanceDecreaseBSCDistributeReward)
-	state.AddBalance(coinbase, balance, tracing.BalanceIncreaseBSCDistributeReward)
-	log.Trace("distribute to validator contract", "block hash", header.Hash(), "amount", balance)
+
+	// Check if the burn feature is configured in genesis.
+	if p.chainConfig.BurnPercent != nil && *p.chainConfig.BurnPercent > 0 && balance.Sign() > 0 {
+		burnAddress := common.HexToAddress("0x000000000000000000000000000000000000dEaD")
+		burnPercent := uint256.NewInt(*p.chainConfig.BurnPercent)
+
+		// Calculate the burn amount and the validator's reward.
+		burnAmount := new(uint256.Int).Div(new(uint256.Int).Mul(balance, burnPercent), uint256.NewInt(100))
+		validatorReward := new(uint256.Int).Sub(balance, burnAmount)
+
+		// Add funds to the burn address and the remaining reward to the validator.
+		state.AddBalance(burnAddress, burnAmount, tracing.BalanceIncreaseBSCDistributeReward)
+		state.AddBalance(coinbase, validatorReward, tracing.BalanceIncreaseBSCDistributeReward)
+
+		log.Trace("distribute to validator and burn address", "block hash", header.Hash(), "totalFees", balance, "validatorReward", validatorReward, "burnAmount", burnAmount)
+	} else {
+		// Default behavior: validator gets all fees if BurnPercent is not set.
+		state.AddBalance(coinbase, balance, tracing.BalanceIncreaseBSCDistributeReward)
+		log.Trace("distribute to validator contract", "block hash", header.Hash(), "amount", balance)
+	}
+
 	return p.distributeToValidator(balance.ToBig(), val, state, header, chain, txs, receipts, receivedTxs, usedGas, mining, tracer)
 }
 
